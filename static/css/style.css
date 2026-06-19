@@ -92,7 +92,7 @@ h1 em {
 
 .dek {
   margin: 0;
-  max-width: 56ch;
+  text-align: justify;
   color: var(--ink-soft);
   font-size: 14.5px;
 }

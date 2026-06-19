@@ -106,6 +106,6 @@ def generate_puzzle():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5055))
+    port = int(os.environ.get("PORT", 5059))
     debug = os.environ.get("FLASK_DEBUG", "1") == "1"
     app.run(debug=debug, port=port)
