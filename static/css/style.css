@@ -208,6 +208,14 @@ h1 em {
 .sudoku input[data-v="8"], .node[data-v="8"] { color: var(--c8); fill: var(--c8); }
 .sudoku input[data-v="9"], .node[data-v="9"] { color: var(--c9); fill: var(--c9); }
 
+/* live validation: same digit twice in a row/column/block — overrides
+   given/selected/related/digit-color, must stay last in the cascade */
+.sudoku input.conflict {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+.node.conflict { stroke: var(--danger); stroke-width: 2.2; }
+
 /* Graph panel */
 .graph-wrap { width: 100%; aspect-ratio: 1; }
 .graph-wrap svg { width: 100%; height: 100%; display: block; }
@@ -222,6 +230,7 @@ h1 em {
   transition: opacity .1s ease;
 }
 .edge.lit { opacity: .55; }
+.edge.conflict-edge { opacity: .85; stroke: var(--danger); stroke-width: 1.6; }
 
 .node {
   fill: var(--ink-faint);
@@ -245,7 +254,6 @@ h1 em {
   gap: var(--space-3);
 }
 
-/* nested inside a .panel that already has its own border/background */
 .control-row.inline {
   background: transparent;
   border: none;
@@ -314,7 +322,6 @@ button:disabled {
   color: var(--ink-faint);
   font-size: 13px;
   font-family: var(--font-mono);
-  text-align: justify;
 }
 
 table.stat-table {
@@ -375,6 +382,16 @@ table.stat-table {
   font-size: 13.5px;
 }
 .banner.visible { display: block; }
+
+footer {
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  color: var(--ink-faint);
+  font-size: 12.5px;
+}
+
+footer a { color: var(--ink-soft); }
 
 /* Responsive */
 @media (max-width: 760px) {

@@ -7,7 +7,7 @@ from typing import Any, Optional
 from flask import Flask, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 
-from reduction import graph_json
+from reduction import ADJ, graph_json, grid_to_precoloring, node_rc
 from solver import solve_dsatur, solve_naive
 from generator import DIFFICULTIES, generate, get_expert
 
@@ -20,22 +20,30 @@ app.config["JSON_SORT_KEYS"] = False
 VALID_ALGORITHMS = {"dsatur", "naive", "both"}
 
 
-def validate_grid(grid: Any) -> Optional[str]:
-    """Validate the structure and contents of the grid received from the client.
+def find_precoloring_conflict(grid: list) -> Optional[str]:
+    colors = grid_to_precoloring(grid)
+    for uid, color in colors.items():
+        for nb in ADJ[uid]:
+            if nb > uid and colors.get(nb) == color:
+                r1, c1 = node_rc(uid)
+                r2, c2 = node_rc(nb)
+                return (
+                    f"Digit {color} is repeated between cells "
+                    f"({r1 + 1}, {c1 + 1}) and ({r2 + 1}, {c2 + 1})."
+                )
+    return None
 
-    Returns an error message (str) if the grid is invalid,
-    otherwise None. Empty cells are represented by 0.
-    """
+
+def validate_grid(grid: Any) -> Optional[str]:
     if not isinstance(grid, list) or len(grid) != 9:
-        return "The grid must contain exactly 9 rows."
+        return "The grid must have exactly 9 rows."
     for row in grid:
         if not isinstance(row, list) or len(row) != 9:
-            return "Each row must contain exactly 9 cells."
+            return "Each row must have exactly 9 cells."
         for value in row:
-            # bool is a subclass of int in Python, so we explicitly reject it.
             if isinstance(value, bool) or not isinstance(value, int) or not (0 <= value <= 9):
                 return "Each cell must be an integer between 0 and 9 (0 = empty)."
-    return None
+    return find_precoloring_conflict(grid)
 
 
 @app.errorhandler(HTTPException)
@@ -45,7 +53,7 @@ def handle_http_error(err: HTTPException):
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(err: Exception):
-    logger.exception("Unhandled error during request")
+    logger.exception("Unhandled error occurred during the request")
     return jsonify({"error": "Internal server error."}), 500
 
 
@@ -56,7 +64,6 @@ def index():
 
 @app.route("/graph")
 def graph():
-    """Return the Graph Coloring graph nodes and edges for the frontend."""
     return jsonify(graph_json())
 
 
@@ -71,7 +78,7 @@ def solve():
         return jsonify({"error": error}), 400
 
     if algorithm not in VALID_ALGORITHMS:
-        return jsonify({"error": f"Unknown algorithm: {algorithm!r}"}), 400
+        return jsonify({"error": f"Unrecognized algorithm: {algorithm!r}"}), 400
 
     if algorithm == "dsatur":
         return jsonify({"primary": solve_dsatur(grid)})
@@ -79,7 +86,6 @@ def solve():
     if algorithm == "naive":
         return jsonify({"primary": solve_naive(grid)})
 
-    # algorithm == "both": run both algorithms for direct comparison
     return jsonify({
         "primary": solve_dsatur(grid),
         "secondary": solve_naive(grid),
@@ -92,7 +98,7 @@ def generate_puzzle():
     seed_param = request.args.get("seed")
 
     if difficulty not in DIFFICULTIES and difficulty != "expert":
-        return jsonify({"error": f"Unknown difficulty: {difficulty!r}"}), 400
+        return jsonify({"error": f"Unrecognized difficulty: {difficulty!r}"}), 400
 
     seed: Optional[int] = None
     if seed_param is not None:
@@ -106,6 +112,6 @@ def generate_puzzle():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5059))
+    port = int(os.environ.get("PORT", 5056))
     debug = os.environ.get("FLASK_DEBUG", "1") == "1"
     app.run(debug=debug, port=port)
