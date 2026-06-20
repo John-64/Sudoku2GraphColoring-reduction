@@ -425,7 +425,7 @@
 
   function renderHistory() {
     if (state.history.length === 0) {
-      els.stats.innerHTML = '<p class="stats-empty">Generate or fill a puzzle, then press "Solve": results will remain in the list until you press "Clear results".</p>';
+      els.stats.innerHTML = '<p class="stats-empty">Generate or load a Sudoku puzzle, then click <strong>Solve</strong>. The results will remain visible until you click <strong>Clear Results</strong>.</p>';
       return;
     }
 
