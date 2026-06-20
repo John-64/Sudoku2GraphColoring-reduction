@@ -31,11 +31,27 @@ Same worst-case complexity (the problem is still NP-hard), but DSATUR explores a
     ```
 3. Then go to: http://localhost:5050 (or any other port selected in the app.py file)
 
-### Some notes
-...
-
 ## Screenshots
-...
+<div align="center">
+    <div>
+        <h5>Creating the Sudoku Grid</h5>
+    </div>
+    <img src="media/sudokuGenerate.png" alt="Creating the Sudoku Grid" width="80%">
+</div>
+
+<div align="center">
+    <div>
+        <h5>During resolution</h5>
+    </div>
+    <img src="media/solving.png" alt="During resolution" width="80%">
+</div>
+
+<div align="center">
+    <div>
+        <h5>Reduction completed</h5>
+    </div>
+    <img src="media/solved.png" alt="Reduction completed" width="80%">
+</div>
 
 ## Info and credits
 This project was created for the course "Algoritmi Avanzati" at the Università degli Studi di Salerno. 
