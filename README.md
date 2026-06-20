@@ -45,6 +45,13 @@ Same worst-case complexity (the problem is still NP-hard), but DSATUR explores a
 
 <div align="center">
     <div>
+        <h5>Incorrect input</h5>
+    </div>
+    <img src="media/incorrectInput.png" alt="Incorrect input" width="80%">
+</div>
+
+<div align="center">
+    <div>
         <h5>During resolution</h5>
     </div>
     <img src="media/solving.png" alt="During resolution" width="80%">
