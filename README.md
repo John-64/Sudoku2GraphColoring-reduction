@@ -1,6 +1,10 @@
 # Sudoku2GraphColoring reduction
 Sudoku solved as a graph-coloring instance: a polynomial reduction, two backtracking algorithms side by side, and an interface that shows both representations — grid and graph — as the same object seen from two angles.
 
+<p align="center"> 
+    <img src="media/icon.png" alt="Sudoku2GraphColoring" width="15%">
+</p>
+
 ## The reduction
 - Each cell `(r, c)` of the 9×9 grid becomes a node → **81 nodes**.
 - Two nodes are connected if their cells share a constraint (same row, same column, or same 3×3 block) → **810 edges**, degree 20 per node.
