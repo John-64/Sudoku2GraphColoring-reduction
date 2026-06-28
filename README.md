@@ -86,7 +86,7 @@ Both work for any block size `n` the app supports. Note this is *not* full arc-c
     <img src="media/solved.png" alt="Reduction completed" width="80%">
 </div>
 
-## Credits
+## References
 - [New methods to color the vertices of a graph](https://dl.acm.org/doi/10.1145/359094.359101) - Daniel Brélaz
 - [Complexity and Completeness of Finding Another Solution and Its Application to Puzzles](https://academic.timwylie.com/17CSCI4341/sudoku.pdf) - Takayuki Yato, Takahiro Seta
 
