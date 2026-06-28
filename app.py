@@ -42,6 +42,7 @@ def parse_block_size(raw: Any) -> "tuple[Optional[int], Optional[str]]":
     return n, None
 
 
+# Cerca un conflitto fra celle precolorate usando le adiacenze del grafo
 def find_precoloring_conflict(grid: list, n: int) -> Optional[str]:
     adj, _ = get_graph(n)
     colors = grid_to_precoloring(grid, n)
@@ -57,6 +58,7 @@ def find_precoloring_conflict(grid: list, n: int) -> Optional[str]:
     return None
 
 
+# Valida forma e contenuto della griglia, poi delega il controllo conflitti
 def validate_grid(grid: Any, n: int) -> Optional[str]:
     N = grid_size(n)
     if not isinstance(grid, list) or len(grid) != N:
@@ -70,17 +72,20 @@ def validate_grid(grid: Any, n: int) -> Optional[str]:
     return find_precoloring_conflict(grid, n)
 
 
+# Risposta JSON uniforme per le eccezioni HTTP gestite da Flask/Werkzeug
 @app.errorhandler(HTTPException)
 def handle_http_error(err: HTTPException):
     return jsonify({"error": err.description}), err.code or 500
 
 
+# Risposta JSON uniforme per qualunque errore non previsto (con log)
 @app.errorhandler(Exception)
 def handle_unexpected_error(err: Exception):
     logger.exception("Unhandled error occurred during the request")
     return jsonify({"error": "Internal server error."}), 500
 
 
+# Pagina principale: passa al template le dimensioni di blocco supportate
 @app.route("/")
 def index():
     return render_template(
@@ -90,6 +95,7 @@ def index():
     )
 
 
+# Ritorna l'istanza del grafo (nodi+archi) per il blocco n richiesto
 @app.route("/graph")
 def graph():
     n, error = parse_block_size(request.args.get("n"))
@@ -98,6 +104,7 @@ def graph():
     return jsonify(graph_json(n))
 
 
+# Valida la griglia ricevuta e dispatcha alla risoluzione richiesta (dsatur/naive/both)
 @app.route("/solve", methods=["POST"])
 def solve():
     data = request.get_json(silent=True) or {}
@@ -127,6 +134,7 @@ def solve():
     })
 
 
+# Genera (o recupera, per "expert") un puzzle per il blocco/difficolta'/seed richiesti
 @app.route("/generate")
 def generate_puzzle():
     n, error = parse_block_size(request.args.get("n"))

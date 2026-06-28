@@ -1,25 +1,3 @@
-"""
-Riduzione (famiglia di riduzioni, una per ogni n) da Sudoku generalizzato
-n^2 x n^2 a Pre-coloring Extension (caso particolare di Graph Coloring in
-cui parte dei nodi e' gia' colorata in partenza).
-
-Per ogni dimensione di blocco n:
-- ogni cella (r, c) della griglia n^2 x n^2 diventa un nodo  -> n^4 nodi;
-- due nodi sono collegati se le celle condividono un vincolo (stessa riga,
-  stessa colonna o stesso blocco n x n)                      -> grado 3n^2-2n-1;
-- le celle gia' riempite diventano una pre-colorazione fissata.
-
-n=3 e' il Sudoku classico 9x9 (81 nodi, grado 20, 810 archi); n=2 e n=4
-generalizzano la stessa costruzione a 4x4 e 16x16. La mappa istanza->istanza
-e' calcolabile in tempo Theta(n^6) (n^4 celle, O(n^2) lavoro ciascuna per
-riga/colonna/blocco) -- bound stretto, non solo upper bound, perche' il
-grafo stesso ha Theta(n^6) archi, quindi nessun algoritmo che li scriva
-tutti puo' fare meglio. Questo e' il punto centrale per discutere la
-riduzione come oggetto a dimensione variabile e non come singola istanza
-fissata. Si veda il README per la discussione completa su cosa questa
-riduzione prova (e cosa non prova) circa NP-completezza.
-"""
-
 from functools import lru_cache
 from typing import Dict, List, Set, Tuple
 
@@ -57,6 +35,7 @@ def build_graph(n: int) -> Tuple[List[Set[int]], List[Tuple[int, int]]]:
     N = grid_size(n)
     adj: List[Set[int]] = [set() for _ in range(N * N)]
 
+    # Aggiunge un arco non orientato fra a e b (ignorato se a == b)
     def add_edge(a: int, b: int) -> None:
         if a != b:
             adj[a].add(b)
@@ -90,6 +69,7 @@ def build_graph(n: int) -> Tuple[List[Set[int]], List[Tuple[int, int]]]:
     return adj, edges
 
 
+# Solleva un errore se n non e' una delle dimensioni di blocco supportate
 def _check_supported(n: int) -> None:
     if n not in SUPPORTED_BLOCK_SIZES:
         raise ValueError(

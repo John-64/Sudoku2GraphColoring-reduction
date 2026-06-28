@@ -3,30 +3,19 @@ from typing import List, Optional
 
 from reduction import DEFAULT_BLOCK_SIZE, SUPPORTED_BLOCK_SIZES, grid_size
 
-# Frazione di celle rimosse per difficolta', calibrata per blocco n.
-# n=3 e' il caso classico (34/81, 46/81, 54/81). Per n=4 (16 colori) un
-# semplice backtracking (anche con DSATUR + forward checking, senza
-# arc-consistency completa) degrada molto piu' rapidamente all'aumentare
-# delle celle vuote che nel caso 9x9: a parita' di frazione rimossa la
-# ricerca puo' esplodere combinatoriamente. Per restare in tempi di
-# risposta ragionevoli per una demo web, n=4 usa frazioni piu' basse
-# (piu' indizi) a parita' di etichetta di difficolta'. n=2 e' comunque
-# banale (16 celle) quindi puo' restare aggressivo.
-REMOVE_FRACTIONS_BY_N = {
-    2: {"easy": 0.50, "medium": 0.625, "hard": 0.75},
-    3: {"easy": 34 / 81, "medium": 46 / 81, "hard": 54 / 81},
-    4: {"easy": 0.30, "medium": 0.38, "hard": 0.46},
-}
+DIFFICULTY_FRACTIONS = {"easy": 34 / 81, "medium": 46 / 81, "hard": 54 / 81}
 
 # Difficolta' gestite da generate(); "expert" e' un caso a parte (get_expert()),
 # disponibile solo per il Sudoku classico (n=3).
-DIFFICULTIES = tuple(REMOVE_FRACTIONS_BY_N[DEFAULT_BLOCK_SIZE].keys())
+DIFFICULTIES = tuple(DIFFICULTY_FRACTIONS.keys())
 
 
+# Copia profonda di una griglia (lista di liste) per non mutare l'originale
 def _copy(grid: List[List[int]]) -> List[List[int]]:
     return [row[:] for row in grid]
 
 
+# Solleva un errore se n non e' una delle dimensioni di blocco supportate
 def _check_supported(n: int) -> None:
     if n not in SUPPORTED_BLOCK_SIZES:
         raise ValueError(
@@ -56,6 +45,7 @@ def base_grid(n: int) -> List[List[int]]:
     ]
 
 
+# Genera un puzzle risolvibile: griglia base -> randomizzazione -> rimozione celle
 def generate(n: int = DEFAULT_BLOCK_SIZE, difficulty: str = "medium", seed: Optional[int] = None) -> List[List[int]]:
     _check_supported(n)
     N = grid_size(n)
@@ -101,8 +91,7 @@ def generate(n: int = DEFAULT_BLOCK_SIZE, difficulty: str = "medium", seed: Opti
 
     # --- Rimuovi celle con simmetria di punto (180 gradi) ---
     puzzle = _copy(grid)
-    fractions = REMOVE_FRACTIONS_BY_N[n]
-    fraction = fractions.get(difficulty, fractions["medium"])
+    fraction = DIFFICULTY_FRACTIONS.get(difficulty, DIFFICULTY_FRACTIONS["medium"])
     total_cells = N * N
     n_remove = round(total_cells * fraction)
     center = total_cells // 2
@@ -151,5 +140,6 @@ EXPERT_PUZZLES = [
 EXPERT_BLOCK_SIZE = 3
 
 
+# Ritorna una copia del puzzle "esperto" precostruito (solo n=3)
 def get_expert() -> List[List[int]]:
     return _copy(EXPERT_PUZZLES[0])
