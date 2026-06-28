@@ -1,6 +1,7 @@
 """
 Riduzione (famiglia di riduzioni, una per ogni n) da Sudoku generalizzato
-n^2 x n^2 a Graph Coloring con pre-colorazione (Pre-coloring Extension).
+n^2 x n^2 a Pre-coloring Extension (caso particolare di Graph Coloring in
+cui parte dei nodi e' gia' colorata in partenza).
 
 Per ogni dimensione di blocco n:
 - ogni cella (r, c) della griglia n^2 x n^2 diventa un nodo  -> n^4 nodi;

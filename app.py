@@ -20,7 +20,7 @@ from solver import solve_dsatur, solve_naive
 from generator import DIFFICULTIES, EXPERT_BLOCK_SIZE, generate, get_expert
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-logger = logging.getLogger("sudoku2graphcoloring")
+logger = logging.getLogger("sudoku2precoloringextension")
 
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False

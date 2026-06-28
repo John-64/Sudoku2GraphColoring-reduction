@@ -1,13 +1,13 @@
-# Sudoku2GraphColoring reduction
-Sudoku solved as a graph-coloring instance: a polynomial *family* of reductions (parametrized by block size `n`, selectable from 4×4 to 16×16), two backtracking algorithms side by side, and an interface that shows both representations — grid and graph — as the same object seen from two angles.
+# Sudoku 2 Precoloring extension
+Sudoku solved as a Pre-coloring Extension instance: a polynomial *family* of reductions (parametrized by block size `n`, selectable from 4×4 to 16×16), two backtracking algorithms side by side, and an interface that shows both representations — grid and graph — as the same object seen from two angles.
 
 <p align="center"> 
-    <img src="media/icon.png" alt="Sudoku2GraphColoring" width="15%">
+    <img src="media/icon.png" alt="Sudoku2PrecoloringExtension" width="15%">
 </p>
 
 ## The reduction
 
-This is not a single fixed-size construction: it's a family of polynomial-time transformations, one for every block size `n`, mapping a generalized Sudoku on an `n²×n²` grid to an instance of **graph coloring with a partial pre-assigned coloring** — formally *Pre-coloring Extension* (a.k.a. list coloring), which is the precise decision problem this app targets, not "plain" k-coloring. The app currently supports `n = 2, 3, 4` (boards 4×4, 9×9, 16×16); `n = 3` is the classic Sudoku.
+This is not a single fixed-size construction: it's a family of polynomial-time transformations, one for every block size `n`, mapping a generalized Sudoku on an `n²×n²` grid to an instance of **Pre-coloring Extension** (a.k.a. list coloring) — a graph-coloring problem where part of the assignment is fixed in advance — which is the precise decision problem this app targets, not "plain" k-coloring. The app currently supports `n = 2, 3, 4` (boards 4×4, 9×9, 16×16); `n = 3` is the classic Sudoku.
 
 For a given `n`:
 - each cell `(r, c)` becomes a node → **n⁴ nodes**;
