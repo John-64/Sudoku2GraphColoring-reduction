@@ -13,7 +13,7 @@ For a given `n`:
 - each cell `(r, c)` becomes a node → **n⁴ nodes**;
 - two nodes are connected if their cells share a constraint (same row, same column, or same `n×n` block) → degree **3n² − 2n − 1** per node, **n⁴(3n² − 2n − 1)/2 edges**. Concretely: n=2 → 16 nodes, degree 7, 56 edges; n=3 → 81 nodes, degree 20, 810 edges; n=4 → 256 nodes, degree 39, 4992 edges.
 - cells already filled in become a fixed pre-coloring.
-- the instance-to-instance map is computable in time polynomial in `n` (building the adjacency lists costs `O(n⁸)` in the worst case) — which is the actual sense in which this is "a polynomial reduction": a statement about an infinite family of instances of growing size, not about one fixed 9×9 board (see *"Why a family, not one instance"* below).
+- the instance-to-instance map is computable in time polynomial in `n` (building the adjacency lists and edge list costs `Θ(n⁶)`: `n⁴` cells, `O(n²)` work each for the row/column/block neighbors — and this is tight, not just an upper bound, since the graph itself has `Θ(n⁶)` edges, so no algorithm that writes them all out can do better) — which is the actual sense in which this is "a polynomial reduction": a statement about an infinite family of instances of growing size, not about one fixed 9×9 board (see *"Why a family, not one instance"* below).
 
 An `n²`-coloring of the graph that respects the pre-coloring corresponds exactly to a solution of the Sudoku instance: every row, column, and block is an `n²`-clique, so a proper coloring drawing from exactly `n²` available colors is forced to use all of them on each clique — a genuine bijection between colorings and Sudoku solutions, not just an "if" direction.
 
@@ -85,6 +85,10 @@ Both work for any block size `n` the app supports. Note this is *not* full arc-c
     </div>
     <img src="media/solved.png" alt="Reduction completed" width="80%">
 </div>
+
+## Credits
+- [New methods to color the vertices of a graph](https://dl.acm.org/doi/10.1145/359094.359101) - Daniel Brélaz
+- [Complexity and Completeness of Finding Another Solution and Its Application to Puzzles](https://academic.timwylie.com/17CSCI4341/sudoku.pdf) - Takayuki Yato, Takahiro Seta
 
 ## Contribution
 If you'd like to contribute, please follow these steps:

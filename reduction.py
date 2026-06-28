@@ -11,8 +11,10 @@ Per ogni dimensione di blocco n:
 
 n=3 e' il Sudoku classico 9x9 (81 nodi, grado 20, 810 archi); n=2 e n=4
 generalizzano la stessa costruzione a 4x4 e 16x16. La mappa istanza->istanza
-e' calcolabile in tempo polinomiale in n (O(n^8) nel caso peggiore per la
-costruzione degli archi), il che e' il punto centrale per discutere la
+e' calcolabile in tempo Theta(n^6) (n^4 celle, O(n^2) lavoro ciascuna per
+riga/colonna/blocco) -- bound stretto, non solo upper bound, perche' il
+grafo stesso ha Theta(n^6) archi, quindi nessun algoritmo che li scriva
+tutti puo' fare meglio. Questo e' il punto centrale per discutere la
 riduzione come oggetto a dimensione variabile e non come singola istanza
 fissata. Si veda il README per la discussione completa su cosa questa
 riduzione prova (e cosa non prova) circa NP-completezza.
