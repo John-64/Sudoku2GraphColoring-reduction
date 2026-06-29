@@ -10,65 +10,70 @@ from reduction import (
     node_rc,
 )
 
+# Impostazione per i limiti (alzati per dare margine al caso peggiore, 16x16 hard
+# con naive; per n=2/3 questi limiti non vengono mai raggiunti, quindi non cambia nulla)
+MAX_STEPS = 8_000      # limite step per l'animazione
+MAX_NODES = 30_000_000  # guard per puzzle irrisolvibili
+MAX_SECONDS = 25.0     # guard sul tempo
 
-MAX_STEPS = 8_000   # limite step per l'animazione (non per il conteggio nodi)
-MAX_NODES = 2_000_000  # guard per puzzle irrisolvibili / buggy input
-MAX_SECONDS = 8.0   # guard sul tempo di parete: a n=4 (16 colori) la ricerca
-                     # puo' esplodere combinatoriamente molto piu' in fretta
-                     # che a n=3, anche restando sotto MAX_NODES
+#=== Helper ===#
 
-# Helper
-
-
+# Calcola quali colori sono ancora disponibili per un nodo (visitando i vicini)
 def available_colors(uid: int, colors: Dict[int, int], adj: List[set], N: int) -> List[int]:
-    """Cifre 1..N non usate dai vicini colorati di uid."""
-    used = {colors[nb] for nb in adj[uid] if nb in colors}  # colori gia' presi dai vicini
+    used = {colors[nb] for nb in adj[uid] if nb in colors}  # colori già presi dai vicini
     return [c for c in range(1, N + 1) if c not in used]  # domino residuo del nodo
 
-
+# Uguale a available_colors ma non restituisce l'insieme, bensì solo la quantità
 def saturation(uid: int, colors: Dict[int, int], adj: List[set]) -> int:
-    """Numero di colori distinti usati dai vicini di uid."""
     return len({colors[nb] for nb in adj[uid] if nb in colors})  # grado di saturazione (DSATUR)
 
-# 1. DSATUR + Forward Checking
-
-
-# Risolve l'istanza di Pre-coloring Extension con DSATUR + forward checking sul grafo
+#=== Algoritmo 1: DSATUR + Forward Checking ===#
 def solve_dsatur(grid: List[List[int]], n: int = DEFAULT_BLOCK_SIZE) -> dict:
+    # Preparazione iniziale
     start = time.perf_counter()
     N = grid_size(n)
-    adj, _ = get_graph(n)
-
-    colors = grid_to_precoloring(grid, n)  # pre-colorazione fissata dalle celle gia' piene
+    adj, _ = get_graph(n) # ottiene il grafo
+    colors = grid_to_precoloring(grid, n)  # converte la griglia in pre-colorazione fissata
     uncolored = [u for u in range(N * N) if u not in colors]
 
-    nodes_explored = [0]  # liste di un elemento: stato mutabile condiviso dalle closure sotto
-    anim_steps: List[Tuple[int, int, int]] = []  # log (r, c, val) per l'animazione frontend
+    # Contatori
+    nodes_explored = [0]
     overflow = [False]
     guard_triggered = [False]
+    guard_reason = [None]  # "nodes" o "time": dice al frontend QUALE guard e' scattato
 
-    # Aggiunge uno step al log per l'animazione, se non si e' superato il limite
+    # Animazione per il frontend
+    anim_steps: List[Tuple[int, int, int]] = []
     def _record(r, c, val):
         if not overflow[0]:
             anim_steps.append((r, c, val))
             if len(anim_steps) >= MAX_STEPS:
                 overflow[0] = True
 
-    # Controlla se i guard (nodi esplorati / tempo) sono scattati
+    # Controllo sui limiti (guard). Il tempo va controllato a OGNI chiamata, non ogni
+    # 2048 nodi: nelle fasi iniziali (poche celle colorate) la selezione DSATUR scorre
+    # tutti i nodi non colorati, quindi i nodi arrivano molto piu' lentamente e il
+    # 2048-esimo potrebbe non arrivare mai in tempo utile, lasciando il guard sul
+    # tempo "muto" proprio nei casi peggiori.
     def _guard_hit() -> bool:
         if nodes_explored[0] > MAX_NODES:  # troppi nodi esplorati
+            guard_reason[0] = "nodes"
             return True
-        if nodes_explored[0] % 2048 == 0 and (time.perf_counter() - start) > MAX_SECONDS:  # troppo tempo
+        if (time.perf_counter() - start) > MAX_SECONDS:  # troppo tempo
+            guard_reason[0] = "time"
             return True
         return False
 
     # Ricerca ricorsiva: assegna un colore al nodo piu' vincolato, con forward checking
     def backtrack(uncolored_set: set, colors: Dict[int, int]) -> bool:
+        # Guard check
         if _guard_hit():
-            guard_triggered[0] = True  # ricerca abortita: non e' una prova di "nessuna soluzione"
+            guard_triggered[0] = True 
             return False
+        
+        # Condizione di arresto
         if not uncolored_set:
-            return True  # tutti i nodi colorati -> soluzione trovata
+            return True  # tutti i nodi colorati -> soluzione trovata!
 
         # DSATUR: scegli il nodo con saturazione massima; a parita', grado massimo
         uid = max(
@@ -76,20 +81,24 @@ def solve_dsatur(grid: List[List[int]], n: int = DEFAULT_BLOCK_SIZE) -> dict:
             key=lambda u: (saturation(u, colors, adj), len(adj[u]))
         )
 
-        for color in available_colors(uid, colors, adj, N):  # prova ogni colore ammissibile
+        # Per ogni colore ammissibile
+        for color in available_colors(uid, colors, adj, N):
             nodes_explored[0] += 1
-            colors[uid] = color  # assegna (tentativo)
+            colors[uid] = color  # assegna un colore al nodo uid (tentativo)
             r, c = node_rc(uid, n)
             _record(r, c, color)
 
             remaining = uncolored_set - {uid}
             affected = adj[uid] & remaining  # vicini non colorati impattati dalla scelta
-            ok = all(available_colors(nb, colors, adj, N) for nb in affected)  # forward checking
 
-            if ok and backtrack(remaining, colors):  # ricorsione solo se nessun vicino e' in stallo
+            # Forward checking: assume valore vero solo se ogni vicino non colorato ha ancora almeno una cifra disponibile
+            ok = all(available_colors(nb, colors, adj, N) for nb in affected)  # se false, si scarta subito
+
+            if ok and backtrack(remaining, colors):  # ricorsione solo se nessun vicino è in stallo
                 return True
 
-            del colors[uid]  # backtrack: disfa l'assegnazione
+            # Backtrack: colore successivo
+            del colors[uid]
             _record(r, c, 0)
 
         return False  # nessun colore ha funzionato per uid
@@ -106,39 +115,42 @@ def solve_dsatur(grid: List[List[int]], n: int = DEFAULT_BLOCK_SIZE) -> dict:
         "steps": anim_steps,
         "steps_overflow": overflow[0],
         "guard_triggered": guard_triggered[0],
+        "guard_reason": guard_reason[0],
     }
 
-# 2. Backtracking Naive (riga-per-riga)
-
-
-# Risolve lo stesso Sudoku con backtracking puro, senza grafo o euristiche
+#=== Algoritmo 2: Backtracking Naive (riga per riga) ===#
 def solve_naive(grid: List[List[int]], n: int = DEFAULT_BLOCK_SIZE) -> dict:
+    # Preparazione iniziale
     start = time.perf_counter()
     N = grid_size(n)
     board = [row[:] for row in grid]
+
+    # Contatori
     nodes_explored = [0]
-    anim_steps: List[Tuple[int, int, int]] = []
     overflow = [False]
     guard_triggered = [False]
+    guard_reason = [None]  # "nodes" o "time": dice al frontend QUALE guard e' scattato
 
-    # Aggiunge uno step al log per l'animazione, se non si e' superato il limite
+    # Animazione per il frontend
+    anim_steps: List[Tuple[int, int, int]] = []
     def _record(r, c, val):
         if not overflow[0]:
             anim_steps.append((r, c, val))
             if len(anim_steps) >= MAX_STEPS:
                 overflow[0] = True
 
-    # Controlla se i guard (nodi esplorati / tempo) sono scattati
+    # Controllo sui limiti (guard); tempo controllato a ogni chiamata, non a campione
     def _guard_hit() -> bool:
         if nodes_explored[0] > MAX_NODES:
+            guard_reason[0] = "nodes"
             return True
-        if nodes_explored[0] % 2048 == 0 and (time.perf_counter() - start) > MAX_SECONDS:
+        if (time.perf_counter() - start) > MAX_SECONDS:
+            guard_reason[0] = "time"
             return True
         return False
 
-    # Verifica che val non sia gia' presente in riga, colonna o blocco di (r, c)
+    # Verifica che "val" non sia già presente in: riga, colonna o blocco di (r, c)
     def is_valid(r: int, c: int, val: int) -> bool:
-        # nessun grafo qui: controlla riga, colonna e blocco direttamente sulla griglia
         if val in board[r]:
             return False
         if any(board[i][c] == val for i in range(N)):
@@ -152,19 +164,24 @@ def solve_naive(grid: List[List[int]], n: int = DEFAULT_BLOCK_SIZE) -> dict:
 
     # Ricerca ricorsiva riga-per-riga: prima cella vuota, prima cifra valida
     def backtrack() -> bool:
+        # Guard check
         if _guard_hit():
             guard_triggered[0] = True
             return False
+        
         for r in range(N):
             for c in range(N):
-                if board[r][c] == 0:  # prima cella vuota in ordine riga-per-riga (no heuristica)
-                    for val in range(1, N + 1):  # prova le cifre in ordine crescente
+                if board[r][c] == 0:  # Seleziona la prima cella vuota in ordine riga-per-riga (non ci sono euristiche!)
+                    # Per quella cella prova tutte le cifre
+                    for val in range(1, N + 1): # tentativi in ordine crescente
                         nodes_explored[0] += 1
+                        # Se è valido, la scrive e fa la ricorsione
                         if is_valid(r, c, val):
                             board[r][c] = val
                             _record(r, c, val)
                             if backtrack():
                                 return True
+                            # Se la ricorsione fallisce, cancella il valore e prova la cifra successiva
                             board[r][c] = 0  # backtrack: disfa il tentativo
                             _record(r, c, 0)
                     return False  # nessuna cifra valida per questa cella -> fallimento
@@ -182,4 +199,5 @@ def solve_naive(grid: List[List[int]], n: int = DEFAULT_BLOCK_SIZE) -> dict:
         "steps": anim_steps,
         "steps_overflow": overflow[0],
         "guard_triggered": guard_triggered[0],
+        "guard_reason": guard_reason[0],
     }

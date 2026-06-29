@@ -348,6 +348,24 @@ button:disabled {
   transform: none;
 }
 
+/* Spinner inline nel pulsante Solve: invisibile finche' il bottone non ha
+   la classe is-loading (impostata via JS mentre la richiesta /solve e' in volo) */
+.btn-spinner {
+  display: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, .4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: btn-spin .6s linear infinite;
+}
+button.is-loading .btn-spinner { display: inline-block; }
+button.is-loading { display: inline-flex; align-items: center; gap: 7px; cursor: wait; }
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Stats */
 .stats-panel { margin-top: var(--space-5); }
 .stats-panel .panel-head {

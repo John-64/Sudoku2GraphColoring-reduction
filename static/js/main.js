@@ -404,6 +404,7 @@
     }
 
     setBusy(true);
+    setSolving(true);  // spinner + "Solving..." sul bottone, mentre la richiesta e' in volo
     const algorithm = els.algorithm.value;
 
     clearSelection();
@@ -419,6 +420,7 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Solving failed");
 
+      setSolving(false);  // risposta arrivata: da qui in poi e' l'animazione, non l'attesa
       await animateSteps(data.primary.steps || []);
 
       state.grid = data.primary.success ? data.primary.solution : cloneGrid(state.baseGrid);
@@ -427,8 +429,17 @@
     } catch (err) {
       showError(err.message);
     } finally {
+      setSolving(false);
       setBusy(false);
     }
+  }
+
+  // Mostra/nasconde lo spinner sul bottone Solve e cambia l'etichetta, per far capire
+  // che il server sta ancora calcolando (la richiesta /solve e' sincrona: puo' durare
+  // anche diversi secondi prima che torni qualcosa da animare)
+  function setSolving(isSolving) {
+    els.btnSolve.classList.toggle("is-loading", isSolving);
+    els.btnSolve.querySelector(".btn-label").textContent = isSolving ? "Solving…" : "Solve";
   }
 
   function animateSteps(steps) {
@@ -471,7 +482,10 @@
 
   function outcomeLabel(row) {
     if (row.success) return { cls: "success", text: "Solved" };
-    if (row.guard_triggered) return { cls: "fail", text: "Guard (incomplete)" };
+    if (row.guard_triggered) {
+      const reason = row.guard_reason === "time" ? "time limit" : row.guard_reason === "nodes" ? "node limit" : null;
+      return { cls: "fail", text: reason ? `Guard (incomplete – ${reason})` : "Guard (incomplete)" };
+    }
     return { cls: "fail", text: "No solution" };
   }
 

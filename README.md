@@ -36,6 +36,8 @@ One practical side-effect of generalizing to `n = 4`: with 16 colors, simple bac
 - **Naive** — row-by-row backtracking, first valid digit, no heuristics.
 - **DSATUR + Forward Checking** (Brélaz, 1979) — at each step, colors the node with maximum saturation (MRV: fewer available colors means a tighter constraint, so it fails earlier), and propagates the constraint to direct neighbors immediately after each assignment.
 
+Both algorithms here are full backtracking searches, with undo on failure — not the classic textbook DSATUR, which is a single-pass greedy heuristic with no backtracking and can fail to find a solution even when one exists. This implementation uses DSATUR's saturation criterion only to *order* which node to branch on next, inside a complete, sound backtracking search — hence the name "DSATUR + Forward Checking" rather than plain "DSATUR".
+
 Both work for any block size `n` the app supports. Note this is *not* full arc-consistency (AC-3) — only direct neighbors are checked after each assignment — which is part of why `n = 4` (16 colors) can occasionally hit the search guards described above even though the underlying worst-case complexity argument (the problem is still NP-hard for the generalized, unbounded-size version) doesn't change with `n`. DSATUR still explores a search tree orders of magnitude smaller than naive backtracking in practice — the app makes this visible by comparing nodes explored by both algorithms on the same instance.
 
 ## Interface
