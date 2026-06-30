@@ -17,12 +17,12 @@ MAX_SECONDS = 300.0     # guard sul tempo
 
 #=== Helper ===#
 
-# Restituisce i ancora disponibili per un nodo (visitando i vicini)
+# Restituisce i colori ancora disponibili per un nodo (visitando i vicini)
 def available_colors(uid: int, colors: Dict[int, int], adj: List[set], N: int) -> List[int]:
     used = {colors[nb] for nb in adj[uid] if nb in colors}  # colori già presi dai vicini
     return [c for c in range(1, N + 1) if c not in used]  # domino residuo del nodo
 
-# Uguale a available_colors ma non restituisce l'insieme, bensì solo la quantità
+# Conta i colori distinti usati dai vicini
 def saturation(uid: int, colors: Dict[int, int], adj: List[set]) -> int:
     return len({colors[nb] for nb in adj[uid] if nb in colors})  # grado di saturazione (DSATUR)
 
