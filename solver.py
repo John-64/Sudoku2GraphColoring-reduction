@@ -11,9 +11,9 @@ from reduction import (
 )
 
 # Impostazione per i limiti
-MAX_STEPS = 20_000      # limite step per l'animazione
-MAX_NODES = 100_000_000  # guard per puzzle irrisolvibili
-MAX_SECONDS = 60.0     # guard sul tempo
+MAX_STEPS = 100_000      # limite step per l'animazione
+MAX_NODES = 500_000_000  # guard per puzzle irrisolvibili
+MAX_SECONDS = 300.0     # guard sul tempo
 
 #=== Helper ===#
 
